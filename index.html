@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KuniLika — Мои ссылки</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+  :root{
+    --bg-dark:#1a0033;
+    --bg-mid:#2b0a4e;
+    --purple:#7a1fd0;
+    --purple-lt:#b48aff;
+    --hot:#e0d4ff;
+    --text:#e0d4ff;
+    --win-face:#3d2458;
+    --win-light:#6b4a8a;
+    --win-shadow:#0d0018;
+    --win-dark-edge:#1f0d33;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  html,body{ height:100%; }
+
+  body{
+    background-color:var(--bg-dark);
+    background-image:
+      repeating-linear-gradient(0deg, transparent 0 15px, rgba(122,31,208,.07) 15px 16px),
+      repeating-linear-gradient(90deg, transparent 0 15px, rgba(122,31,208,.07) 15px 16px),
+      radial-gradient(circle at 50% 20%, #34105e 0%, #1a0033 60%, #0d0018 100%);
+    font-family:'Press Start 2P', 'MS Sans Serif', cursive;
+    color:var(--text);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    padding:16px;
+    image-rendering:pixelated;
+  }
+
+  /* ---------- fake CRT scanlines ---------- */
+  body::after{
+    content:"";
+    position:fixed; inset:0;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 2px, transparent 2px 4px);
+    pointer-events:none;
+    z-index:999;
+  }
+
+  /* ---------- window (Win9x/2000 style) ---------- */
+  .window{
+    width:100%; max-width:520px;
+    background:var(--win-face);
+    border:2px solid;
+    border-color:var(--win-light) var(--win-shadow) var(--win-shadow) var(--win-light);
+    box-shadow:0 0 0 1px var(--win-dark-edge), 8px 8px 0 rgba(0,0,0,.45), 0 0 40px rgba(122,31,208,.35);
+    padding:3px;
+  }
+
+  .titlebar{
+    background:linear-gradient(90deg, #2b0a4e 0%, var(--purple) 55%, #4b1480 100%);
+    color:#fff;
+    font-size:10px;
+    padding:5px 6px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    user-select:none;
+  }
+  .titlebar .icon{ width:14px; height:14px; flex:0 0 auto; }
+  .titlebar .title{ flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:1px; }
+
+  .tb-btns{ display:flex; gap:3px; }
+  .tb-btn{
+    width:18px; height:16px;
+    background:var(--win-face);
+    border:1px solid;
+    border-color:var(--win-light) var(--win-shadow) var(--win-shadow) var(--win-light);
+    color:var(--text);
+    font-family:inherit; font-size:8px;
+    line-height:1;
+    cursor:default;
+  }
+
+  .content{ padding:14px 12px 12px; }
+
+  h1{
+    font-size:14px;
+    text-align:center;
+    color:var(--purple-lt);
+    text-shadow:2px 2px 0 var(--win-shadow), 0 0 12px rgba(180,138,255,.6);
+    margin:8px 0 4px;
+    line-height:1.6;
+  }
+  .subtitle{
+    text-align:center;
+    font-size:8px;
+    color:var(--hot);
+    margin-bottom:14px;
+    line-height:1.8;
+  }
+
+  /* ---------- links as Win buttons ---------- */
+  .links{ display:flex; flex-direction:column; gap:8px; }
+  a.link{
+    display:flex; align-items:center; gap:10px;
+    background:var(--win-face);
+    border:2px solid;
+    border-color:var(--win-light) var(--win-shadow) var(--win-shadow) var(--win-light);
+    padding:11px 12px;
+    color:var(--text);
+    text-decoration:none;
+    font-size:10px;
+    letter-spacing:1px;
+    line-height:1.6;
+  }
+  a.link .glyph{
+    width:16px; height:16px; flex:0 0 auto;
+    font-size:14px; text-align:center; line-height:16px;
+    color:var(--purple-lt);
+  }
+  a.link .name{ flex:1; }
+  a.link .arrow{ color:var(--purple-lt); font-size:8px; }
+  a.link:hover{
+    background:#4b2a6b;
+    color:#fff;
+    box-shadow:0 0 14px rgba(122,31,208,.6);
+  }
+  a.link:active{
+    border-color:var(--win-shadow) var(--win-light) var(--win-light) var(--win-shadow);
+    padding:12px 11px 10px 13px;
+  }
+  a.link.placeholder{ opacity:.55; }
+
+  /* ---------- status bar ---------- */
+  .statusbar{
+    margin-top:12px;
+    border:2px solid;
+    border-color:var(--win-shadow) var(--win-light) var(--win-light) var(--win-shadow);
+    background:#241040;
+    font-size:8px;
+    padding:4px 6px;
+    display:flex;
+    gap:8px;
+    color:#a98ad0;
+  }
+  .statusbar .cell{ flex:1; }
+  .statusbar .cell.counter{ flex:0 0 auto; }
+
+  .cursor{ animation:blink 1s steps(1) infinite; }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  /* ---------- start taskbar ---------- */
+  .taskbar{
+    position:fixed; left:0; right:0; bottom:0;
+    background:var(--win-face);
+    border-top:2px solid var(--win-light);
+    padding:3px 4px;
+    display:flex; align-items:center; gap:6px;
+    font-size:9px;
+    z-index:998;
+    user-select:none;
+  }
+  .start{
+    background:var(--win-face);
+    border:2px solid;
+    border-color:var(--win-light) var(--win-shadow) var(--win-shadow) var(--win-light);
+    padding:4px 8px;
+    color:var(--text);
+    cursor:default;
+  }
+  .start:active{
+    border-color:var(--win-shadow) var(--win-light) var(--win-light) var(--win-shadow);
+  }
+  .clock{
+    margin-left:auto;
+    border:2px solid;
+    border-color:var(--win-shadow) var(--win-light) var(--win-light) var(--win-shadow);
+    padding:4px 8px;
+    color:#a98ad0;
+  }
+  body{ padding-bottom:44px; }
+
+  /* ---------- popup menu ---------- */
+  .menu{
+    position:fixed; bottom:34px; left:4px;
+    background:var(--win-face);
+    border:2px solid;
+    border-color:var(--win-light) var(--win-shadow) var(--win-shadow) var(--win-light);
+    padding:2px;
+    display:none;
+    z-index:997;
+    min-width:170px;
+  }
+  .menu.open{ display:block; }
+  .menu div{
+    padding:7px 10px;
+    font-size:9px;
+    cursor:pointer;
+  }
+  .menu div:hover{ background:var(--purple); color:#fff; }
+</style>
+</head>
+<body>
+
+  <div class="window">
+    <div class="titlebar">
+      <svg class="icon" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="14" height="14" fill="#7a1fd0"/>
+        <rect x="3" y="3" width="10" height="10" fill="#1a0033"/>
+        <rect x="5" y="5" width="6" height="6" fill="#b48aff"/>
+        <rect x="7" y="7" width="2" height="2" fill="#7a1fd0"/>
+      </svg>
+      <span class="title">KuniLika — C:\LINKS\</span>
+      <div class="tb-btns">
+        <div class="tb-btn">_</div>
+        <div class="tb-btn">□</div>
+        <div class="tb-btn">×</div>
+      </div>
+    </div>
+
+    <div class="content">
+      <h1>✦ KUNILIKA ✦</h1>
+      <p class="subtitle">my little corner of the internet<br>est. 2003<span class="cursor">_</span></p>
+
+      <div class="links" id="links"></div>
+
+      <div class="statusbar">
+        <div class="cell">Для запуска нажмите на ссылку</div>
+        <div class="cell counter">👁 <span id="hits">0</span> хитов</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="taskbar">
+    <div class="start" id="startBtn">🖥 Пуск</div>
+    <div class="clock" id="clock">--:--</div>
+  </div>
+
+  <div class="menu" id="menu">
+    <div onclick="location.reload()">Перезагрузить</div>
+    <div onclick="alert('Нигде в интернете!')">Обнаружить в инете</div>
+    <div onclick="alert('Память: 640K хватит всем')">Помощь</div>
+  </div>
+
+<script>
+// ===== ССЫЛКИ: меняй только этот список =====
+// [название, glyph-эмодзи, url] — url '' = заглушка
+const LINKS = [
+  ["Telegram",     "✈", ""],   // https://t.me/...
+  ["VK",           "📘", ""],   // https://vk.com/...
+  ["YouTube",      "▶", ""],   // https://youtube.com/@...
+  ["Discord",      "💬", ""],   // https://discord.gg/... или user
+  ["Twitch",       "🎮", ""],   // https://twitch.tv/...
+  ["Instagram",    "📷", ""],   // https://instagram.com/...
+  ["Steam",        "🧢", ""],   // https://steamcommunity.com/id/...
+  ["TikTok",       "🎵", ""],   // https://tiktok.com/@...
+];
+// ============================================
+
+const box = document.getElementById("links");
+for (const [name, glyph, url] of LINKS) {
+  const a = document.createElement("a");
+  a.className = "link" + (url ? "" : " placeholder");
+  a.innerHTML = '<span class="glyph">' + glyph + '</span>' +
+                '<span class="name">' + name + '</span>' +
+                '<span class="arrow">' + (url ? "►" : "—") + '</span>';
+  if (url) { a.href = url; a.target = "_blank"; a.rel = "noopener"; }
+  else { a.href = "#"; a.onclick = () => { alert(name + ": ссылка не настроена"); return false; }; }
+  box.appendChild(a);
+}
+
+// счётчик "хитов" из localStorage (2000s style)
+let hits = parseInt(localStorage.getItem("hits") || "0", 10) + 1;
+localStorage.setItem("hits", hits);
+document.getElementById("hits").textContent = hits;
+
+// часы в трее
+function tick(){
+  const d = new Date();
+  const p = n => String(n).padStart(2, "0");
+  document.getElementById("clock").textContent = p(d.getHours()) + ":" + p(d.getMinutes());
+}
+tick(); setInterval(tick, 10000);
+
+// меню "Пуск"
+const menu = document.getElementById("menu");
+document.getElementById("startBtn").onclick = e => { e.stopPropagation(); menu.classList.toggle("open"); };
+document.addEventListener("click", () => menu.classList.remove("open"));
+</script>
+</body>
+</html>
