@@ -201,6 +201,47 @@
     cursor:pointer;
   }
   .menu div:hover{ background:var(--purple); color:#fff; }
+
+  /* ---------- clock is clickable ---------- */
+  .clock{ cursor:pointer; }
+  .clock:hover{ color:#fff; }
+
+  /* ---------- "Свойства: Дата и время" ---------- */
+  .dt-panel{
+    position:fixed; right:4px; bottom:40px; z-index:997;
+    width:260px;
+    background:var(--win-face);
+    border:2px solid;
+    border-color:var(--win-light) var(--win-shadow) var(--win-shadow) var(--win-light);
+    box-shadow:4px 4px 0 rgba(0,0,0,.45);
+    padding:3px;
+    display:none;
+  }
+  .dt-panel.open{ display:block; }
+  .dt-body{ padding:10px 8px 12px; font-size:8px; line-height:1.8; }
+  .dt-group{ font-size:9px; color:var(--text); }
+  .dt-face{
+    background:#10051f;
+    border:2px solid;
+    border-color:var(--win-shadow) var(--win-light) var(--win-light) var(--win-shadow);
+    text-align:center;
+    padding:10px 0 9px;
+    margin:6px 0 12px;
+  }
+  .dt-time{ font-size:16px; color:var(--purple-lt); text-shadow:2px 2px 0 var(--win-shadow); }
+  .dt-date{ margin-top:7px; color:#a98ad0; }
+  .dt-val{ margin-top:4px; margin-bottom:2px; color:#a98ad0; }
+  .dt-ok{
+    display:block; margin:14px auto 0;
+    background:var(--win-face);
+    border:2px solid;
+    border-color:var(--win-light) var(--win-shadow) var(--win-shadow) var(--win-light);
+    padding:5px 22px;
+    font-family:inherit; font-size:8px;
+    color:var(--text);
+    cursor:default;
+  }
+  .dt-ok:active{ border-color:var(--win-shadow) var(--win-light) var(--win-light) var(--win-shadow); }
 </style>
 </head>
 <body>
@@ -245,6 +286,29 @@
     <div onclick="alert('Память: 640K хватит всем')">Помощь</div>
   </div>
 
+  <div class="dt-panel" id="dtProp">
+    <div class="titlebar">
+      <svg class="icon" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="12" height="12" fill="#b48aff"/>
+        <rect x="4" y="4" width="8" height="8" fill="#1a0033"/>
+        <rect x="7" y="1" width="2" height="3" fill="#fff"/>
+        <rect x="12" y="7" width="3" height="2" fill="#fff"/>
+      </svg>
+      <span class="title">Свойства: Дата и время</span>
+      <div class="tb-btns"><div class="tb-btn">×</div></div>
+    </div>
+    <div class="dt-body">
+      <div class="dt-group">Ваше локальное время</div>
+      <div class="dt-face">
+        <div class="dt-time" id="dtTime">--:--:--</div>
+        <div class="dt-date" id="dtDate">—</div>
+      </div>
+      <div class="dt-group">Часовой пояс</div>
+      <div class="dt-val" id="dtZone">—</div>
+      <button class="dt-ok" type="button">ОК</button>
+    </div>
+  </div>
+
 <script>
 // ===== ССЫЛКИ: меняй только этот список =====
 // [название, glyph-эмодзи, url] — url '' = заглушка
@@ -279,18 +343,46 @@ let hits = parseInt(localStorage.getItem("hits") || "0", 10) + 1;
 localStorage.setItem("hits", hits);
 document.getElementById("hits").textContent = hits;
 
-// часы в трее
+// часы в трее — время гостя, тикают каждую секунду
+const WD = ["воскресенье","понедельник","вторник","среда","четверг","пятница","суббота"];
+const MON = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+const p = n => String(n).padStart(2, "0");
+function zoneLabel(d){
+  const off = -d.getTimezoneOffset();
+  const sign = off < 0 ? "-" : "+";
+  const abs = Math.abs(off);
+  let s = "UTC" + sign + Math.floor(abs / 60);
+  if (abs % 60) s += ":" + p(abs % 60);
+  try { s += " · " + Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) {}
+  return s;
+}
+const clockEl = document.getElementById("clock");
+const dt = document.getElementById("dtProp");
 function tick(){
   const d = new Date();
-  const p = n => String(n).padStart(2, "0");
-  document.getElementById("clock").textContent = p(d.getHours()) + ":" + p(d.getMinutes());
+  const t = p(d.getHours()) + ":" + p(d.getMinutes());
+  clockEl.textContent = t;
+  clockEl.title = WD[d.getDay()] + ", " + d.getDate() + " " + MON[d.getMonth()] + " " + d.getFullYear() + " г. · " + t + ":" + p(d.getSeconds());
+  if (dt.classList.contains("open")) {
+    document.getElementById("dtTime").textContent = t + ":" + p(d.getSeconds());
+    document.getElementById("dtDate").textContent = WD[d.getDay()] + ", " + d.getDate() + " " + MON[d.getMonth()] + " " + d.getFullYear() + " г.";
+    document.getElementById("dtZone").textContent = zoneLabel(d);
+  }
 }
-tick(); setInterval(tick, 10000);
+tick(); setInterval(tick, 1000);
+
+// окно "Свойства: Дата и время" — по клику на часы, как в Windows 2000
+clockEl.onclick = e => { e.stopPropagation(); dt.classList.toggle("open"); };
+dt.addEventListener("click", e => e.stopPropagation());
+const dtClose = () => dt.classList.remove("open");
+document.querySelector(".dt-ok").onclick = dtClose;
+dt.querySelector(".tb-btn").onclick = dtClose;
 
 // меню "Пуск"
 const menu = document.getElementById("menu");
 document.getElementById("startBtn").onclick = e => { e.stopPropagation(); menu.classList.toggle("open"); };
 document.addEventListener("click", () => menu.classList.remove("open"));
+document.addEventListener("keydown", e => { if (e.key === "Escape") { menu.classList.remove("open"); dtClose(); } });
 </script>
 </body>
 </html>
