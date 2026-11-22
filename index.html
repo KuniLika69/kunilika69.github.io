@@ -242,6 +242,11 @@
     cursor:default;
   }
   .dt-ok:active{ border-color:var(--win-shadow) var(--win-light) var(--win-light) var(--win-shadow); }
+
+  /* ---------- мемный курсор: пиксельный демон ---------- */
+  html, body, a, .link, .menu div, .tb-btn, .clock, .dt-ok, .titlebar, .taskbar{
+    cursor:var(--dcur, default);
+  }
 </style>
 </head>
 <body>
@@ -424,6 +429,82 @@ sndItem.onclick = e => {
   paintSnd(); clack();
 };
 paintSnd();
+
+// мемный курсор: пиксельный демон, моргает, при нажатии бьёт когтями
+const PAL = { o:"#ff8814", y:"#ffd21f", r:"#d02028", k:"#7a1018", w:"#ffffff", t:"#ff5f7a", 1:"#0a0a0a", p:"#141414" };
+const C0 = [
+"oy1.......1y1o..",
+".oy1.....1yo....",
+"..oy1...1yo.....",
+"..1yy111yy1.....",
+"..1rrrrrrrr1....",
+".1rrrrrrrrr1....",
+".1ryyr1ryyr1....",
+".1rypr1rypr1....",
+".1rrrrrrrrrr1...",
+".1rwrwrwrwrw1...",
+".1rwtrwtrwtr1...",
+"..1rrrrrrrr1....",
+".1r1rrrrr1r1....",
+".11.1rrr1.11....",
+".....1rrr1......",
+"......o1o......."
+];
+const C1 = [
+"oy1.......1y1o..",
+".oy1.....1yo....",
+"..oy1...1yo.....",
+"..1yy111yy1.....",
+"..1rrrrrrrr1....",
+".1rrrrrrrrr1....",
+".1rrrk1krrr1....",
+".1rrrrrrrrrr1...",
+".1rrrrrrrrrr1...",
+".1rwrwrwrwrw1...",
+".1rwtrwtrwtr1...",
+"..1rrrrrrrr1....",
+".1r1rrrrr1r1....",
+".11.1rrr1.11....",
+".....1rrr1......",
+"......o1o......."
+];
+const C2 = [
+"w1y1.....1y1o...",
+"wwy1.....1yo....",
+"wow1....1yo.....",
+".w1yy111yy1.....",
+"..1rrrrrrrr1....",
+".1rrrrrrrrr1....",
+".1ryyr1ryyr1....",
+".1rypr1rypr1....",
+".1rrrrrrrrrr1...",
+".1rrwww11wwrr1..",
+".1rrwtrwtrwrr1..",
+".1rrrwtrtwrrr1..",
+"..1rrrrrrrr1....",
+".1r1rrrrr1r1....",
+".11.1rrr1.11....",
+".....1o1o......."
+];
+function cur(rows){
+  let s = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 16 16" shape-rendering="crispEdges">';
+  rows.forEach((row, y) => {
+    for (let x = 0; x < 16; x++) {
+      const c = row[x];
+      if (c !== "." && PAL[c]) s += '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="' + PAL[c] + '"/>';
+    }
+  });
+  return 'url("data:image/svg+xml,' + encodeURIComponent(s + "</svg>") + '") 1 1, auto';
+}
+const CYCLE = [cur(C0), cur(C0), cur(C0), cur(C1)]; // моргает раз в ~0.7 сек
+const HIT = cur(C2);
+const droot = document.documentElement;
+let cIdx = 0, hitting = false;
+function paintCur(){ droot.style.setProperty("--dcur", hitting ? HIT : CYCLE[cIdx]); }
+paintCur();
+setInterval(() => { cIdx = (cIdx + 1) % CYCLE.length; paintCur(); }, 180);
+document.addEventListener("pointerdown", () => { hitting = true; paintCur(); });
+document.addEventListener("pointerup", () => { hitting = false; paintCur(); });
 </script>
 </body>
 </html>
