@@ -284,6 +284,8 @@
     <div onclick="location.reload()">Перезагрузить</div>
     <div onclick="alert('Нигде в интернете!')">Обнаружить в инете</div>
     <div onclick="alert('Память: 640K хватит всем')">Помощь</div>
+    <hr style="border:none;border-top:1px solid var(--win-shadow);border-bottom:1px solid var(--win-light);margin:4px 2px">
+    <div id="sndItem">Звук: ВКЛ ♪</div>
   </div>
 
   <div class="dt-panel" id="dtProp">
@@ -383,6 +385,45 @@ const menu = document.getElementById("menu");
 document.getElementById("startBtn").onclick = e => { e.stopPropagation(); menu.classList.toggle("open"); };
 document.addEventListener("click", () => menu.classList.remove("open"));
 document.addEventListener("keydown", e => { if (e.key === "Escape") { menu.classList.remove("open"); dtClose(); } });
+
+// звук: механический клац клавиатуры — синтез Web Audio, файлов нет
+let actx = null;
+let sndOn = localStorage.getItem("snd") !== "off";
+function clack(){
+  if (!sndOn) return;
+  try {
+    if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === "suspended") actx.resume();
+    const t = actx.currentTime;
+    const len = Math.floor(actx.sampleRate * 0.03);
+    const buf = actx.createBuffer(1, len, actx.sampleRate);
+    const ch = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.5);
+    const src = actx.createBufferSource(); src.buffer = buf;
+    const hpf = actx.createBiquadFilter(); hpf.type = "highpass"; hpf.frequency.value = 1800;
+    const ng = actx.createGain(); ng.gain.value = 0.3;
+    src.connect(hpf); hpf.connect(ng); ng.connect(actx.destination);
+    src.start(t);
+    const osc = actx.createOscillator(); osc.type = "square";
+    osc.frequency.setValueAtTime(1600, t);
+    osc.frequency.exponentialRampToValueAtTime(500, t + 0.04);
+    const og = actx.createGain();
+    og.gain.setValueAtTime(0.09, t);
+    og.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+    osc.connect(og); og.connect(actx.destination);
+    osc.start(t); osc.stop(t + 0.06);
+  } catch (e) {}
+}
+document.addEventListener("pointerdown", clack);
+const sndItem = document.getElementById("sndItem");
+function paintSnd(){ sndItem.textContent = "Звук: " + (sndOn ? "ВКЛ ♪" : "ВЫКЛ"); }
+sndItem.onclick = e => {
+  e.stopPropagation();
+  sndOn = !sndOn;
+  localStorage.setItem("snd", sndOn ? "on" : "off");
+  paintSnd(); clack();
+};
+paintSnd();
 </script>
 </body>
 </html>
